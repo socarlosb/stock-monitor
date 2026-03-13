@@ -52,7 +52,7 @@ def get_price(symbol):
         with urllib.request.urlopen(req, timeout=10) as resp:
             data = json.loads(resp.read())
         meta = data["chart"]["result"][0]["meta"]
-        return meta["regularMarketPrice"], meta.get("regularMarketChangePercent", 0)
+        return meta["regularMarketPrice"], meta.get("previousClose")
     except:
         return None, None
 
@@ -111,7 +111,7 @@ def make_icon(text, change_pct=None):
 def format_price(change_pct):
     if change_pct is None:
         return "…"
-    return f"{change_pct:.1f}"
+    return f"{abs(change_pct):.1f}"
 
 
 # ── Janela de gestão ──────────────────────
@@ -224,6 +224,7 @@ class StockIcon:
         self.on_quit_all = on_quit_all
         self.on_manage = on_manage
         self.price = None
+        self.previous_close = None
         self.change_pct = None
         self.icon = None
         self._create()
@@ -246,7 +247,17 @@ class StockIcon:
         )
 
     def _fetch(self):
-        self.price, self.change_pct = get_price(self.symbol)
+        price, previous_close = get_price(self.symbol)
+        self.price = price
+
+        if previous_close is not None and self.previous_close is None:
+            self.previous_close = previous_close
+
+        if self.price is not None and self.previous_close not in (None, 0):
+            self.change_pct = ((self.price - self.previous_close) / self.previous_close) * 100
+        else:
+            self.change_pct = None
+
         self._refresh()
 
     def _refresh(self):
