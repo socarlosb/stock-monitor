@@ -263,8 +263,12 @@ class StockIcon:
     def _refresh(self):
         text = format_price(self.change_pct)
         self.icon.icon = make_icon(text, self.change_pct)
-        if self.price is not None:
-            self.icon.title = f"{self.name}:  {self.price:,.2f}"
+        if self.price is not None and self.previous_close is not None:
+            self.icon.title = (
+                f"{self.name}: {self.previous_close:,.2f} | {self.price:,.2f}"
+            )
+        elif self.price is not None:
+            self.icon.title = f"{self.name}: {self.price:,.2f}"
         else:
             self.icon.title = f"{self.name}: erro ao carregar"
 
